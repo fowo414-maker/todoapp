@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Skeleton } from "@/components/common/Skeleton";
 import { WeekProgressBar } from "@/components/week/WeekProgressBar";
 import {
   useCreateYearGoal,
@@ -12,12 +13,17 @@ import {
 import { toDateString } from "@/lib/dates";
 import type { ProgressSummary, WeeklyPlanDTO } from "@/lib/types";
 
-/** 목표에 연결된 주간 계획들의 진행률 평균(롤업). */
+/**
+ * 목표에 연결된 주간 계획들의 "주간 진행률 평균" (계획별 ratio 의 산술 평균).
+ * done/total 은 참고용 합계로 함께 제공한다.
+ */
 export function rollupProgress(plans: WeeklyPlanDTO[]): ProgressSummary {
   if (plans.length === 0) return { done: 0, total: 0, ratio: 0 };
   const done = plans.reduce((s, p) => s + p.progress.done, 0);
   const total = plans.reduce((s, p) => s + p.progress.total, 0);
-  return { done, total, ratio: total === 0 ? 0 : done / total };
+  const ratio =
+    plans.reduce((s, p) => s + p.progress.ratio, 0) / plans.length;
+  return { done, total, ratio };
 }
 
 export function YearView() {
@@ -43,8 +49,12 @@ export function YearView() {
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
-    await createGoal.mutateAsync({ title: title.trim(), year });
-    setTitle("");
+    try {
+      await createGoal.mutateAsync({ title: title.trim(), year });
+      setTitle("");
+    } catch {
+      // onError 토스트가 처리
+    }
   }
 
   async function handleDelete(id: string) {
@@ -54,7 +64,11 @@ export function YearView() {
       )
     )
       return;
-    await deleteGoal.mutateAsync(id);
+    try {
+      await deleteGoal.mutateAsync(id);
+    } catch {
+      // onError 토스트가 처리
+    }
   }
 
   const goals = goalsQuery.data ?? [];
@@ -89,7 +103,11 @@ export function YearView() {
       </form>
 
       {goalsQuery.isLoading ? (
-        <p className="text-sm text-neutral-500">불러오는 중…</p>
+        <Skeleton rows={3} />
+      ) : goalsQuery.isError ? (
+        <p role="alert" className="text-sm text-red-600">
+          1년 목표를 불러오지 못했습니다.
+        </p>
       ) : goals.length === 0 ? (
         <EmptyState message="아직 1년 목표가 없습니다." />
       ) : (

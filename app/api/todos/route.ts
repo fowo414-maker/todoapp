@@ -38,11 +38,14 @@ export async function GET(req: Request): Promise<Response> {
     if (status) filter.status = status;
 
     const docs = await Todo.find(filter).exec();
-    // status 를 컬럼 순서(todo→doing→done)로, 그 안에서는 order 오름차순으로 정렬.
+    // status 를 컬럼 순서(todo→doing→done)로, 그 안에서는 order 오름차순,
+    // order 가 같으면 _id 로 안정 정렬한다.
     docs.sort((a, b) => {
       const s =
         STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status);
-      return s !== 0 ? s : a.order - b.order;
+      if (s !== 0) return s;
+      if (a.order !== b.order) return a.order - b.order;
+      return a._id.toString().localeCompare(b._id.toString());
     });
     return ok(docs.map(serializeTodo));
   });
@@ -54,8 +57,16 @@ export async function POST(req: Request): Promise<Response> {
     const input = createTodoSchema.parse(await readJson(req));
     const status: TodoStatus = input.status ?? "todo";
 
-    const order =
-      input.order ?? (await Todo.countDocuments({ status }).exec());
+    // 같은 status 컬럼의 맨 끝에 붙인다. countDocuments 는 삭제 후 중복 order 를
+    // 만들 수 있으므로 현재 최대 order + 1 을 사용한다.
+    let order = input.order;
+    if (order === undefined) {
+      const last = await Todo.findOne({ status })
+        .sort({ order: -1 })
+        .select("order")
+        .lean<{ order: number } | null>();
+      order = last ? last.order + 1 : 0;
+    }
 
     const doc = await Todo.create({
       title: input.title,

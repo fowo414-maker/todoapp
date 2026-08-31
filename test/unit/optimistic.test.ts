@@ -4,7 +4,6 @@ import {
   patchTodo,
   removeTodo,
   reorderWithin,
-  upsertTodo,
 } from "@/lib/optimistic";
 import type { TodoDTO } from "@/lib/types";
 
@@ -23,14 +22,6 @@ function todo(partial: Partial<TodoDTO> & { id: string }): TodoDTO {
 }
 
 describe("optimistic helpers", () => {
-  it("upsertTodo 는 없으면 추가, 있으면 교체", () => {
-    const list = [todo({ id: "a" })];
-    expect(upsertTodo(list, todo({ id: "b" }))).toHaveLength(2);
-    const replaced = upsertTodo(list, todo({ id: "a", title: "changed" }));
-    expect(replaced).toHaveLength(1);
-    expect(replaced[0].title).toBe("changed");
-  });
-
   it("removeTodo 는 해당 id 제거", () => {
     expect(
       removeTodo([todo({ id: "a" }), todo({ id: "b" })], "a").map((t) => t.id),

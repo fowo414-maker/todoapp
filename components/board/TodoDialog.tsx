@@ -46,23 +46,31 @@ export function TodoDialog({
     if (!title.trim()) return;
     const payload = {
       title: title.trim(),
-      description: description.trim() || undefined,
+      description: description.trim(),
       date,
       weeklyPlanId: weeklyPlanId || null,
     };
-    if (isEdit && todo) {
-      await update.mutateAsync({ id: todo.id, patch: payload });
-    } else {
-      await create.mutateAsync(payload);
+    try {
+      if (isEdit && todo) {
+        await update.mutateAsync({ id: todo.id, patch: payload });
+      } else {
+        await create.mutateAsync(payload);
+      }
+      onClose();
+    } catch {
+      // 실패 메시지는 뮤테이션 onError 의 토스트가 처리한다. 다이얼로그는 열어 둔다.
     }
-    onClose();
   }
 
   async function handleDelete() {
     if (!todo) return;
     if (!window.confirm("이 할 일을 삭제할까요?")) return;
-    await remove.mutateAsync(todo.id);
-    onClose();
+    try {
+      await remove.mutateAsync(todo.id);
+      onClose();
+    } catch {
+      // onError 토스트가 처리
+    }
   }
 
   return (

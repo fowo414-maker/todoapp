@@ -14,7 +14,7 @@ export async function POST(req: Request): Promise<Response> {
 
     const affectedStatuses = [...new Set(columns.map((c) => c.status))];
     const docs = await Todo.find({ status: { $in: affectedStatuses } })
-      .sort({ status: 1, order: 1 })
+      .sort({ status: 1, order: 1, _id: 1 })
       .exec();
     return ok(docs.map(serializeTodo));
   });

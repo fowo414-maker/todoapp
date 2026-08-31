@@ -1,13 +1,10 @@
 import type { TodoDTO, TodoStatus } from "@/lib/types";
 
-/** 목록에서 같은 id 를 교체하거나 없으면 추가한다. */
-export function upsertTodo(list: TodoDTO[], todo: TodoDTO): TodoDTO[] {
-  const idx = list.findIndex((t) => t.id === todo.id);
-  if (idx === -1) return [...list, todo];
-  const next = list.slice();
-  next[idx] = todo;
-  return next;
-}
+/**
+ * React Query 캐시(할 일 목록)에 대한 낙관적 업데이트용 순수 함수들.
+ * 생성은 서버가 부여하는 _id 가 필요하므로 낙관적 삽입을 하지 않는다 —
+ * 여기에는 수정/삭제/재정렬 헬퍼만 둔다.
+ */
 
 export function removeTodo(list: TodoDTO[], id: string): TodoDTO[] {
   return list.filter((t) => t.id !== id);

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { TodoDialog } from "@/components/board/TodoDialog";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Skeleton } from "@/components/common/Skeleton";
 import {
   useTodos,
   useUpdateTodo,
@@ -59,9 +60,11 @@ export function DayView() {
       </header>
 
       {todosQuery.isLoading ? (
-        <p className="text-sm text-neutral-500">불러오는 중…</p>
+        <Skeleton rows={4} />
       ) : todosQuery.isError ? (
-        <p className="text-sm text-red-600">불러오지 못했습니다.</p>
+        <p role="alert" className="text-sm text-red-600">
+          불러오지 못했습니다.
+        </p>
       ) : todos.length === 0 ? (
         <EmptyState message="이 날짜의 할 일이 없습니다." />
       ) : (

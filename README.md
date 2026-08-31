@@ -69,7 +69,7 @@ npm run dev        # http://localhost:3000
 | `npm run start` | 빌드 결과 실행 |
 | `npm run lint` | ESLint |
 | `npm test` | 단위 + 통합 테스트 (Vitest, 통합은 mongodb-memory-server 사용 — 외부 DB 불필요) |
-| `npm run test:e2e` | Playwright E2E (`.env.local` 의 실제 MongoDB 사용) |
+| `npm run test:e2e` | Playwright E2E — webServer 가 `scripts/e2e-server.mjs` 로 인메모리 MongoDB 를 자동 기동하므로 외부 DB(Atlas) 불필요 |
 | `npm run seed` | 샘플 데이터 삽입 (기존 데이터 삭제 후) |
 
 ## 구조

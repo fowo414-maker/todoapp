@@ -187,6 +187,50 @@ test.describe("목표 연동 To-Do 전체 흐름", () => {
     ).toBeVisible();
   });
 
+  test("기간 필터(미할당 / 이번 주 계획)를 적용하면 해당 할 일만 보인다", async ({
+    page,
+  }) => {
+    await page.goto("/week");
+
+    // 주간 계획 하나 생성
+    await page.getByPlaceholder("새 주간 계획 제목").fill("P-1주차");
+    await page
+      .locator("form", { has: page.getByPlaceholder("새 주간 계획 제목") })
+      .getByRole("button", { name: "추가" })
+      .click();
+    await expect(
+      page.locator('[data-testid="weekly-plan"]', { hasText: "P-1주차" }),
+    ).toBeVisible();
+
+    await addTodo(page, "SCOPE-ASSIGNED", "P-1주차");
+    await addTodo(page, "SCOPE-UNASSIGNED");
+
+    // 미할당만
+    await page.getByLabel("기간 필터").selectOption("unassigned");
+    await expect(
+      page.locator('[data-testid="todo-card"]', { hasText: "SCOPE-ASSIGNED" }),
+    ).toHaveCount(0);
+    await expect(
+      page.locator('[data-testid="todo-card"]', {
+        hasText: "SCOPE-UNASSIGNED",
+      }),
+    ).toBeVisible();
+
+    // 이번 주 계획에 속한 것만
+    await page.getByLabel("기간 필터").selectOption("week");
+    await expect(
+      page.locator('[data-testid="todo-card"]', {
+        hasText: "SCOPE-UNASSIGNED",
+      }),
+    ).toHaveCount(0);
+    await expect(
+      page.locator('[data-testid="todo-card"]', { hasText: "SCOPE-ASSIGNED" }),
+    ).toBeVisible();
+
+    await page.getByLabel("기간 필터").selectOption("all");
+    await expect(page.locator('[data-testid="todo-card"]')).toHaveCount(2);
+  });
+
   test("일일 / 주간 / 1년 목표 화면 네비게이션", async ({ page }) => {
     await page.goto("/week");
     await page.getByRole("link", { name: "일일" }).click();

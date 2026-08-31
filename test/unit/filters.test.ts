@@ -86,12 +86,13 @@ describe("rollupProgress", () => {
     expect(rollupProgress([])).toEqual({ done: 0, total: 0, ratio: 0 });
   });
 
-  it("여러 계획의 done/total 합산 비율", () => {
+  it("계획별 ratio 의 산술 평균 (주간 진행률 평균)", () => {
     const out = rollupProgress([
       plan({ done: 1, total: 2, ratio: 0.5 }),
       plan({ done: 2, total: 2, ratio: 1 }),
       plan({ done: 0, total: 0, ratio: 0 }),
     ]);
-    expect(out).toEqual({ done: 3, total: 4, ratio: 0.75 });
+    // (0.5 + 1 + 0) / 3 = 0.5
+    expect(out).toEqual({ done: 3, total: 4, ratio: 0.5 });
   });
 });

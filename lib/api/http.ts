@@ -40,13 +40,15 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
     return await fn();
   } catch (err) {
     if (err instanceof ZodError) return fromZodError(err);
-    if (
-      err &&
-      typeof err === "object" &&
-      "name" in err &&
-      (err as { name: string }).name === "CastError"
-    ) {
-      return notFound();
+    const name =
+      err && typeof err === "object" && "name" in err
+        ? (err as { name: string }).name
+        : "";
+    if (name === "CastError") return notFound();
+    if (name === "ValidationError") {
+      const message =
+        err instanceof Error ? err.message : "입력 값이 유효하지 않습니다";
+      return badRequest(message);
     }
     console.error(err);
     return serverError();

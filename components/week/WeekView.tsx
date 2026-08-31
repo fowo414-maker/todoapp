@@ -7,6 +7,7 @@ import { WeekProgressBar } from "@/components/week/WeekProgressBar";
 import { WeeklyPlanList } from "@/components/week/WeeklyPlanList";
 import { Filters, useTodoFilter } from "@/components/common/Filters";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Skeleton } from "@/components/common/Skeleton";
 import { useTodos, useWeeklyPlans, useYearGoals } from "@/lib/queries";
 import { currentWeekStart, shiftWeek, toDateString } from "@/lib/dates";
 import type { TodoDTO } from "@/lib/types";
@@ -108,9 +109,9 @@ export function WeekView() {
       <Filters value={filter} onChange={setFilter} />
 
       {todosQuery.isLoading ? (
-        <p className="text-sm text-neutral-500">불러오는 중…</p>
+        <Skeleton rows={4} />
       ) : todosQuery.isError ? (
-        <p className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-red-600">
           할 일을 불러오지 못했습니다. 새로고침 해주세요.
         </p>
       ) : weekTodos.length === 0 ? (

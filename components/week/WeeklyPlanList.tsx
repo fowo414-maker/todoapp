@@ -26,14 +26,22 @@ export function WeeklyPlanList({
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
-    await createPlan.mutateAsync({ title: title.trim(), weekStart });
-    setTitle("");
+    try {
+      await createPlan.mutateAsync({ title: title.trim(), weekStart });
+      setTitle("");
+    } catch {
+      // onError 토스트가 처리
+    }
   }
 
   async function handleDelete(id: string) {
     if (!window.confirm("이 주간 계획을 삭제할까요? 연결된 할 일은 미할당으로 이동합니다."))
       return;
-    await deletePlan.mutateAsync(id);
+    try {
+      await deletePlan.mutateAsync(id);
+    } catch {
+      // onError 토스트가 처리
+    }
   }
 
   return (
