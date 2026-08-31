@@ -2,13 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { TodoDTO } from "@/lib/types";
-
-const STATUS_LABEL: Record<TodoDTO["status"], string> = {
-  todo: "할 일",
-  doing: "진행 중",
-  done: "완료",
-};
+import { STATUS_LABELS, type TodoDTO } from "@/lib/types";
 
 export function TodoCard({
   todo,
@@ -65,7 +59,7 @@ export function TodoCard({
             </p>
           ) : null}
           <p className="mt-1 text-[11px] text-neutral-400">
-            {todo.date} · {STATUS_LABEL[todo.status]}
+            {todo.date} · {STATUS_LABELS[todo.status]}
           </p>
         </div>
         {onEdit ? (

@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { TODO_STATUSES, type TodoDTO, type TodoStatus } from "@/lib/types";
+import {
+  STATUS_LABELS,
+  TODO_STATUSES,
+  type TodoDTO,
+  type TodoStatus,
+} from "@/lib/types";
 
 export interface TodoFilterValue {
   status: TodoStatus | "all";
@@ -46,11 +51,6 @@ export function filterTodos(
   });
 }
 
-const STATUS_LABEL: Record<TodoStatus, string> = {
-  todo: "할 일",
-  doing: "진행 중",
-  done: "완료",
-};
 
 export function Filters({
   value,
@@ -79,7 +79,7 @@ export function Filters({
         <option value="all">모든 상태</option>
         {TODO_STATUSES.map((s) => (
           <option key={s} value={s}>
-            {STATUS_LABEL[s]}
+            {STATUS_LABELS[s]}
           </option>
         ))}
       </select>

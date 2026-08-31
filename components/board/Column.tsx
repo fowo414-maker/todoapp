@@ -5,14 +5,8 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { TodoDTO, TodoStatus } from "@/lib/types";
+import { STATUS_LABELS, type TodoDTO, type TodoStatus } from "@/lib/types";
 import { TodoCard } from "./TodoCard";
-
-const TITLE: Record<TodoStatus, string> = {
-  todo: "할 일",
-  doing: "진행 중",
-  done: "완료",
-};
 
 export function Column({
   status,
@@ -37,7 +31,7 @@ export function Column({
       }`}
     >
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold">{TITLE[status]}</h3>
+        <h3 className="text-sm font-semibold">{STATUS_LABELS[status]}</h3>
         <span className="text-xs text-neutral-400">{todos.length}</span>
       </div>
       <SortableContext

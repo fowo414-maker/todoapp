@@ -7,10 +7,14 @@ export function WeekProgressBar({
   todos,
   progress,
   label = "주간 진행률",
+  // 롤업(계획별 비율의 평균)처럼 done/total 합계와 퍼센트가 일치하지 않는
+  // 경우엔 분수를 숨긴다.
+  showCount = true,
 }: {
   todos?: TodoDTO[];
   progress?: ProgressSummary;
   label?: string;
+  showCount?: boolean;
 }) {
   const summary: ProgressSummary =
     progress ?? computeWeeklyProgress(todos ?? []);
@@ -21,10 +25,13 @@ export function WeekProgressBar({
       <div className="mb-1 flex items-center justify-between text-sm">
         <span className="text-neutral-600">{label}</span>
         <span className="font-medium tabular-nums">
-          {percent}%{" "}
-          <span className="text-neutral-400">
-            ({summary.done}/{summary.total})
-          </span>
+          {percent}%
+          {showCount ? (
+            <span className="text-neutral-400">
+              {" "}
+              ({summary.done}/{summary.total})
+            </span>
+          ) : null}
         </span>
       </div>
       <div

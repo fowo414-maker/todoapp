@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
 import {
   mutateTodoCaches,
-  restoreTodoCaches,
+  restoreCaches,
   queryKeys,
 } from "@/lib/queries";
 import { patchTodo, removeTodo } from "@/lib/optimistic";
@@ -23,7 +23,7 @@ function todo(id: string, status: TodoDTO["status"] = "todo"): TodoDTO {
 }
 
 describe("낙관적 업데이트 + 롤백", () => {
-  it("mutateTodoCaches 는 모든 todos 캐시를 갱신하고, restoreTodoCaches 로 원상복구된다", () => {
+  it("mutateTodoCaches 는 모든 todos 캐시를 갱신하고, restoreCaches 로 원상복구된다", () => {
     const qc = new QueryClient();
     const keyA = queryKeys.todos({ status: "todo" });
     const keyB = queryKeys.todos({ date: "2026-08-31" });
@@ -43,7 +43,7 @@ describe("낙관적 업데이트 + 롤백", () => {
     ).toBe("done");
 
     // 요청 실패 → 롤백
-    restoreTodoCaches(qc, snapshots);
+    restoreCaches(qc, snapshots);
 
     expect(
       qc.getQueryData<TodoDTO[]>(keyA)!.find((t) => t.id === "a")!.status,
@@ -59,7 +59,7 @@ describe("낙관적 업데이트 + 롤백", () => {
     const snapshots = mutateTodoCaches(qc, (list) => removeTodo(list, "a"));
     expect(qc.getQueryData<TodoDTO[]>(key)).toHaveLength(1);
 
-    restoreTodoCaches(qc, snapshots);
+    restoreCaches(qc, snapshots);
     expect(qc.getQueryData<TodoDTO[]>(key)!.map((t) => t.id)).toEqual([
       "a",
       "b",

@@ -10,13 +10,12 @@ import {
   useWeeklyPlans,
 } from "@/lib/queries";
 import { toDateString } from "@/lib/dates";
-import { TODO_STATUSES, type TodoDTO, type TodoStatus } from "@/lib/types";
-
-const STATUS_LABEL: Record<TodoStatus, string> = {
-  todo: "할 일",
-  doing: "진행 중",
-  done: "완료",
-};
+import {
+  STATUS_LABELS,
+  TODO_STATUSES,
+  type TodoDTO,
+  type TodoStatus,
+} from "@/lib/types";
 
 export function DayView() {
   const [date, setDate] = useState(() => toDateString(new Date()));
@@ -89,7 +88,7 @@ export function DayView() {
               >
                 {TODO_STATUSES.map((s) => (
                   <option key={s} value={s}>
-                    {STATUS_LABEL[s]}
+                    {STATUS_LABELS[s]}
                   </option>
                 ))}
               </select>

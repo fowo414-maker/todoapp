@@ -95,7 +95,7 @@ export function updateCaches<T>(
   }
 }
 
-// 하위 호환 + 단위 테스트에서 직접 사용하는 todos 전용 래퍼.
+/** 모든 ["todos", ...] 캐시에 updater 를 적용하고 이전 스냅샷을 반환한다. */
 export function mutateTodoCaches(
   queryClient: QueryClient,
   updater: (list: TodoDTO[]) => TodoDTO[],
@@ -103,13 +103,6 @@ export function mutateTodoCaches(
   const snapshot = snapshotCaches(queryClient, queryKeys.todosAll);
   updateCaches<TodoDTO[]>(queryClient, queryKeys.todosAll, updater);
   return snapshot;
-}
-
-export function restoreTodoCaches(
-  queryClient: QueryClient,
-  snapshot: Snapshot,
-): void {
-  restoreCaches(queryClient, snapshot);
 }
 
 interface OptimisticContext {
@@ -157,7 +150,7 @@ export function useUpdateTodo() {
       return { snapshot };
     },
     onError: (err, _vars, context) => {
-      if (context) restoreTodoCaches(queryClient, context.snapshot);
+      if (context) restoreCaches(queryClient, context.snapshot);
       toast.error(errorMessage(err, "할 일을 수정하지 못했습니다"));
     },
     onSettled: () => invalidateTodoAndPlans(queryClient),
@@ -177,7 +170,7 @@ export function useDeleteTodo() {
       return { snapshot };
     },
     onError: (err, _id, context) => {
-      if (context) restoreTodoCaches(queryClient, context.snapshot);
+      if (context) restoreCaches(queryClient, context.snapshot);
       toast.error(errorMessage(err, "할 일을 삭제하지 못했습니다"));
     },
     onSettled: () => invalidateTodoAndPlans(queryClient),
@@ -223,7 +216,7 @@ export function useReorderTodos() {
       return { snapshot };
     },
     onError: (err, _vars, context) => {
-      if (context) restoreTodoCaches(queryClient, context.snapshot);
+      if (context) restoreCaches(queryClient, context.snapshot);
       toast.error(errorMessage(err, "순서를 변경하지 못했습니다"));
     },
     onSettled: () => invalidateTodoAndPlans(queryClient),

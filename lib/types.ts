@@ -2,6 +2,12 @@ export type TodoStatus = "todo" | "doing" | "done";
 
 export const TODO_STATUSES: readonly TodoStatus[] = ["todo", "doing", "done"];
 
+export const STATUS_LABELS: Record<TodoStatus, string> = {
+  todo: "할 일",
+  doing: "진행 중",
+  done: "완료",
+};
+
 export interface ProgressSummary {
   done: number;
   total: number;

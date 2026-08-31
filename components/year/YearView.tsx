@@ -146,7 +146,8 @@ export function YearView() {
                 <div className="mt-3">
                   <WeekProgressBar
                     progress={rollupProgress(plans)}
-                    label="연간 롤업 진행률"
+                    label={`연간 롤업 진행률 (주간 계획 ${plans.length}개 평균)`}
+                    showCount={false}
                   />
                 </div>
 
