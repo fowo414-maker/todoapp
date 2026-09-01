@@ -31,7 +31,7 @@ export async function PATCH(req: Request, ctx: Ctx): Promise<Response> {
       doc.weeklyPlanId = input.weeklyPlanId
         ? (input.weeklyPlanId as unknown as typeof doc.weeklyPlanId)
         : null;
-    if (input.date !== undefined) doc.date = input.date;
+    if (input.date !== undefined) doc.date = input.date ?? null;
     if (input.order !== undefined) doc.order = input.order;
 
     if (input.status !== undefined && input.status !== doc.status) {

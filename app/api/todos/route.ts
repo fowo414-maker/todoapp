@@ -73,7 +73,7 @@ export async function POST(req: Request): Promise<Response> {
       description: input.description,
       status,
       weeklyPlanId: input.weeklyPlanId ?? null,
-      date: input.date,
+      date: input.date ?? null,
       order,
       completedAt: status === "done" ? new Date() : null,
     });

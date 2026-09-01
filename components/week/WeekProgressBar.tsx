@@ -23,11 +23,11 @@ export function WeekProgressBar({
   return (
     <div data-testid="week-progress" data-percent={percent}>
       <div className="mb-1 flex items-center justify-between text-sm">
-        <span className="text-neutral-600">{label}</span>
-        <span className="font-medium tabular-nums">
+        <span className="text-ink-soft">{label}</span>
+        <span className="font-medium text-ink tabular-nums">
           {percent}%
           {showCount ? (
-            <span className="text-neutral-400">
+            <span className="text-ink-faint">
               {" "}
               ({summary.done}/{summary.total})
             </span>
@@ -35,14 +35,14 @@ export function WeekProgressBar({
         </span>
       </div>
       <div
-        className="h-2 w-full overflow-hidden rounded-full bg-neutral-200"
+        className="h-2 w-full overflow-hidden rounded-full bg-raised"
         role="progressbar"
         aria-valuenow={percent}
         aria-valuemin={0}
         aria-valuemax={100}
       >
         <div
-          className="h-full rounded-full bg-emerald-500 transition-[width] duration-300"
+          className="h-full rounded-full bg-accent transition-[width] duration-300"
           style={{ width: `${percent}%` }}
         />
       </div>

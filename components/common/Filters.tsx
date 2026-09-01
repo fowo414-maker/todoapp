@@ -64,7 +64,7 @@ export function Filters({
       data-testid="filters"
       className="flex flex-wrap items-center gap-2 text-sm"
     >
-      <span className="text-neutral-500">필터</span>
+      <span className="text-ink-soft">필터</span>
       <select
         aria-label="상태 필터"
         value={value.status}
@@ -74,7 +74,7 @@ export function Filters({
             status: e.target.value as TodoFilterValue["status"],
           })
         }
-        className="rounded border border-neutral-300 px-2 py-1"
+        className="rounded border border-line-strong bg-surface px-2 py-1 text-ink"
       >
         <option value="all">모든 상태</option>
         {TODO_STATUSES.map((s) => (
@@ -92,7 +92,7 @@ export function Filters({
             scope: e.target.value as TodoFilterValue["scope"],
           })
         }
-        className="rounded border border-neutral-300 px-2 py-1"
+        className="rounded border border-line-strong bg-surface px-2 py-1 text-ink"
       >
         <option value="all">전체</option>
         <option value="week">이번 주 계획</option>
@@ -102,7 +102,7 @@ export function Filters({
         <button
           type="button"
           onClick={() => onChange(DEFAULT_FILTER)}
-          className="text-neutral-500 underline"
+          className="text-ink-soft underline hover:text-ink"
         >
           초기화
         </button>

@@ -16,6 +16,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { TODO_STATUSES, type TodoDTO, type TodoStatus } from "@/lib/types";
 import { useReorderTodos } from "@/lib/queries";
 import { Column } from "./Column";
+import { TodoCardContent } from "./TodoCard";
 
 function isStatus(value: string): value is TodoStatus {
   return (TODO_STATUSES as readonly string[]).includes(value);
@@ -36,9 +37,12 @@ function groupByStatus(todos: TodoDTO[]): Record<TodoStatus, TodoDTO[]> {
 export function Board({
   todos,
   onEdit,
+  fill = false,
 }: {
   todos: TodoDTO[];
   onEdit?: (todo: TodoDTO) => void;
+  /** true 면 보드가 화면 높이를 채우도록 컬럼을 길게 늘린다 (할 일 화면). */
+  fill?: boolean;
 }) {
   const reorder = useReorderTodos();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -122,21 +126,25 @@ export function Board({
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveId(null)}
     >
-      <div className="grid gap-3 sm:grid-cols-3" data-testid="board">
+      <div
+        className={`grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-10 ${
+          fill ? "sm:min-h-[calc(100vh-12rem)]" : ""
+        }`}
+        data-testid="board"
+      >
         {TODO_STATUSES.map((status) => (
           <Column
             key={status}
             status={status}
             todos={groups[status]}
             onEdit={onEdit}
+            fill={fill}
           />
         ))}
       </div>
-      <DragOverlay>
+      <DragOverlay dropAnimation={null}>
         {activeTodo ? (
-          <div className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm shadow-lg">
-            {activeTodo.title}
-          </div>
+          <TodoCardContent todo={activeTodo} dragging />
         ) : null}
       </DragOverlay>
     </DndContext>

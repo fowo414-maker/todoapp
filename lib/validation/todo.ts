@@ -11,9 +11,11 @@ export const createTodoSchema = z.object({
   description: z.string().trim().optional(),
   status: todoStatusSchema.default("todo"),
   weeklyPlanId: objectIdString.nullable().optional(),
+  // 기한은 선택. 값이 있으면 'YYYY-MM-DD' 형식이어야 한다.
   date: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "'YYYY-MM-DD' 형식이어야 합니다"),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "'YYYY-MM-DD' 형식이어야 합니다")
+    .nullish(),
   order: z.number().int().min(0).optional(),
 });
 

@@ -9,9 +9,8 @@ async function dragCardToColumn(
   todoId: string,
   targetColumn: "todo" | "doing" | "done",
 ) {
-  const handle = page.locator(
-    `[data-todo-id="${todoId}"] button[aria-label="드래그 핸들"]`,
-  );
+  // 카드 전체가 드래그 대상이다 (별도 핸들 없음).
+  const handle = page.locator(`[data-todo-id="${todoId}"]`);
   const target = page.locator(`[data-testid="column-${targetColumn}"]`);
   const hb = await handle.boundingBox();
   const tb = await target.boundingBox();
@@ -135,10 +134,8 @@ test.describe("목표 연동 To-Do 전체 흐름", () => {
       .locator('[data-testid="todo-card"]', { hasText: "R-B" })
       .getAttribute("data-todo-id");
 
-    // B 를 A 위로: B 를 컬럼 상단으로 드래그
-    const handle = page.locator(
-      `[data-todo-id="${bId}"] button[aria-label="드래그 핸들"]`,
-    );
+    // B 를 A 위로: B 카드를 컬럼 상단으로 드래그
+    const handle = page.locator(`[data-todo-id="${bId}"]`);
     const aBox = await column
       .locator('[data-testid="todo-card"]', { hasText: "R-A" })
       .boundingBox();
@@ -231,12 +228,12 @@ test.describe("목표 연동 To-Do 전체 흐름", () => {
     await expect(page.locator('[data-testid="todo-card"]')).toHaveCount(2);
   });
 
-  test("일일 / 주간 / 1년 목표 화면 네비게이션", async ({ page }) => {
+  test("할 일 / 주간 계획 / 1년 목표 화면 네비게이션", async ({ page }) => {
     await page.goto("/week");
-    await page.getByRole("link", { name: "일일" }).click();
-    await expect(page).toHaveURL(/\/day$/);
+    await page.getByRole("link", { name: "할 일" }).click();
+    await expect(page).toHaveURL(/\/todo$/);
     await expect(
-      page.getByRole("heading", { level: 1, name: "일일" }),
+      page.getByRole("heading", { level: 1, name: "할 일" }),
     ).toBeVisible();
 
     await page.getByRole("link", { name: "1년 목표" }).click();
@@ -245,10 +242,10 @@ test.describe("목표 연동 To-Do 전체 흐름", () => {
       page.getByRole("heading", { level: 1, name: "1년 목표" }),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "주간" }).click();
+    await page.getByRole("link", { name: "주간 계획" }).click();
     await expect(page).toHaveURL(/\/week$/);
     await expect(
-      page.getByRole("heading", { level: 1, name: "주간" }),
+      page.getByRole("heading", { level: 1, name: "주간 계획" }),
     ).toBeVisible();
   });
 });

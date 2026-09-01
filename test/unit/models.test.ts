@@ -17,10 +17,16 @@ async function validationErrors(
 }
 
 describe("Todo 모델 스키마", () => {
-  it("title, date 누락 시 검증 오류", async () => {
+  it("title 누락 시 검증 오류 (date 는 선택)", async () => {
     const errors = await validationErrors(new Todo({}));
     expect(errors?.title).toBeDefined();
-    expect(errors?.date).toBeDefined();
+    expect(errors?.date).toBeUndefined();
+  });
+
+  it("date 없이도 통과하고 기본값은 null", async () => {
+    const doc = new Todo({ title: "기한 없는 할 일" });
+    expect(await validationErrors(doc)).toBeUndefined();
+    expect(doc.date ?? null).toBeNull();
   });
 
   it("잘못된 status 는 검증 오류", async () => {

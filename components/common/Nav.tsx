@@ -4,18 +4,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/day", label: "일일" },
-  { href: "/week", label: "주간" },
-  { href: "/year", label: "1년 목표" },
+  { href: "/dashboard", label: "대시보드", icon: "▦" },
+  { href: "/todo", label: "할 일", icon: "☑" },
+  { href: "/week", label: "주간 계획", icon: "▤" },
+  { href: "/year", label: "1년 목표", icon: "◎" },
 ] as const;
 
 export function Nav() {
   const pathname = usePathname();
 
   return (
-    <header className="border-b border-neutral-200 bg-white">
-      <nav className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-1">
-        <span className="font-semibold mr-4">목표 연동 To-Do</span>
+    <aside className="shrink-0 border-b border-line bg-surface md:sticky md:top-0 md:h-screen md:w-56 md:border-b-0 md:border-r">
+      <div className="px-5 pt-5 pb-3">
+        <span className="text-sm font-semibold tracking-tight text-ink">
+          목표 연동 To-Do
+        </span>
+      </div>
+      <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:overflow-visible">
         {LINKS.map((link) => {
           const active =
             pathname === link.href || pathname.startsWith(`${link.href}/`);
@@ -24,18 +29,21 @@ export function Nav() {
               key={link.href}
               href={link.href}
               aria-current={active ? "page" : undefined}
-              className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+              className={`flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors ${
                 active
-                  ? "bg-neutral-900 text-white"
-                  : "text-neutral-600 hover:bg-neutral-100"
+                  ? "bg-raised font-medium text-ink"
+                  : "text-ink-soft hover:bg-raised hover:text-ink"
               }`}
             >
+              <span aria-hidden className="text-ink-faint">
+                {link.icon}
+              </span>
               {link.label}
             </Link>
           );
         })}
       </nav>
-    </header>
+    </aside>
   );
 }
 

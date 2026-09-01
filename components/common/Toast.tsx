@@ -58,7 +58,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             role="alert"
             data-testid="toast"
             className={`pointer-events-auto rounded-md px-3 py-2 text-sm text-white shadow-lg ${
-              t.kind === "error" ? "bg-red-600" : "bg-neutral-800"
+              t.kind === "error" ? "bg-red-600" : "bg-accent"
             }`}
           >
             {t.message}

@@ -16,10 +16,10 @@ const todoSchema = new Schema(
       ref: "WeeklyPlan",
       default: null,
     },
-    // 일일 화면 필터 기준. 항상 'YYYY-MM-DD'.
+    // 마감 기한 (선택). 값이 있으면 항상 'YYYY-MM-DD'. 없으면 null.
     date: {
       type: String,
-      required: true,
+      default: null,
       match: /^\d{4}-\d{2}-\d{2}$/,
     },
     // 같은 status 컬럼 내 정렬 위치 (0-based).

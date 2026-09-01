@@ -50,7 +50,7 @@ export function serializeTodo(
     description: doc.description ?? undefined,
     status: doc.status,
     weeklyPlanId: doc.weeklyPlanId ? doc.weeklyPlanId.toString() : null,
-    date: doc.date,
+    date: doc.date ?? null,
     order: doc.order,
     completedAt: doc.completedAt ? doc.completedAt.toISOString() : null,
     createdAt: iso((doc as unknown as { createdAt: Date }).createdAt),

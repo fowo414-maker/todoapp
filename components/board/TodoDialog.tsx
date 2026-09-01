@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  useCreateTodo,
-  useDeleteTodo,
-  useUpdateTodo,
-} from "@/lib/queries";
+import { useCreateTodo, useUpdateTodo } from "@/lib/queries";
 import type { TodoDTO, WeeklyPlanDTO } from "@/lib/types";
 
 interface Props {
@@ -14,6 +10,11 @@ interface Props {
   defaultDate: string;
   defaultWeeklyPlanId?: string | null;
   weeklyPlans: WeeklyPlanDTO[];
+  /**
+   * true 면 기한을 선택 항목으로 다룬다 ("기한 설정" 체크박스, 기본 해제).
+   * false(기본) 면 날짜 입력을 항상 노출하고 필수로 받는다.
+   */
+  deadlineOptional?: boolean;
 }
 
 /**
@@ -26,28 +27,33 @@ export function TodoDialog({
   defaultDate,
   defaultWeeklyPlanId = null,
   weeklyPlans,
+  deadlineOptional = false,
 }: Props) {
   const isEdit = Boolean(todo);
   const create = useCreateTodo();
   const update = useUpdateTodo();
-  const remove = useDeleteTodo();
 
   const [title, setTitle] = useState(todo?.title ?? "");
   const [description, setDescription] = useState(todo?.description ?? "");
+  const [hasDeadline, setHasDeadline] = useState(
+    deadlineOptional ? Boolean(todo?.date) : true,
+  );
   const [date, setDate] = useState(todo?.date ?? defaultDate);
   const [weeklyPlanId, setWeeklyPlanId] = useState<string>(
     todo?.weeklyPlanId ?? defaultWeeklyPlanId ?? "",
   );
 
-  const busy = create.isPending || update.isPending || remove.isPending;
+  const busy = create.isPending || update.isPending;
+  const useDate = deadlineOptional ? hasDeadline : true;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
+    if (useDate && !date) return;
     const payload = {
       title: title.trim(),
       description: description.trim(),
-      date,
+      date: useDate ? date : null,
       weeklyPlanId: weeklyPlanId || null,
     };
     try {
@@ -62,20 +68,12 @@ export function TodoDialog({
     }
   }
 
-  async function handleDelete() {
-    if (!todo) return;
-    if (!window.confirm("이 할 일을 삭제할까요?")) return;
-    try {
-      await remove.mutateAsync(todo.id);
-      onClose();
-    } catch {
-      // onError 토스트가 처리
-    }
-  }
+  const fieldClass =
+    "mt-1 w-full rounded-md border border-line-strong bg-surface px-2 py-1.5 text-ink";
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4"
       role="dialog"
       aria-modal="true"
       aria-label={isEdit ? "할 일 수정" : "할 일 추가"}
@@ -84,50 +82,76 @@ export function TodoDialog({
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
-        className="w-full max-w-md space-y-3 rounded-lg bg-white p-5 shadow-xl"
+        className="w-full max-w-md space-y-3 rounded-lg border border-line bg-surface p-5 shadow-xl"
       >
-        <h2 className="text-base font-semibold">
+        <h2 className="text-base font-semibold text-ink">
           {isEdit ? "할 일 수정" : "할 일 추가"}
         </h2>
 
         <label className="block text-sm">
-          <span className="text-neutral-600">제목</span>
+          <span className="text-ink-soft">제목</span>
           <input
             autoFocus
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5"
+            className={fieldClass}
             required
           />
         </label>
 
         <label className="block text-sm">
-          <span className="text-neutral-600">설명 (선택)</span>
+          <span className="text-ink-soft">설명 (선택)</span>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5"
+            className={fieldClass}
           />
         </label>
 
-        <label className="block text-sm">
-          <span className="text-neutral-600">날짜</span>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5"
-            required
-          />
-        </label>
+        {deadlineOptional ? (
+          <div className="text-sm">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={hasDeadline}
+                onChange={(e) => setHasDeadline(e.target.checked)}
+              />
+              <span className="text-ink-soft">기한 설정</span>
+            </label>
+            {hasDeadline ? (
+              <input
+                type="date"
+                aria-label="기한"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className={fieldClass}
+              />
+            ) : (
+              <p className="mt-1 text-xs text-ink-faint">
+                기한 없이 추가됩니다.
+              </p>
+            )}
+          </div>
+        ) : (
+          <label className="block text-sm">
+            <span className="text-ink-soft">날짜</span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className={fieldClass}
+              required
+            />
+          </label>
+        )}
 
         <label className="block text-sm">
-          <span className="text-neutral-600">주간 계획</span>
+          <span className="text-ink-soft">주간 계획</span>
           <select
             value={weeklyPlanId}
             onChange={(e) => setWeeklyPlanId(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5"
+            className={fieldClass}
           >
             <option value="">(미할당)</option>
             {weeklyPlans.map((p) => (
@@ -138,35 +162,21 @@ export function TodoDialog({
           </select>
         </label>
 
-        <div className="flex items-center justify-between pt-2">
-          {isEdit ? (
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={busy}
-              className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
-            >
-              삭제
-            </button>
-          ) : (
-            <span />
-          )}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100"
-            >
-              취소
-            </button>
-            <button
-              type="submit"
-              disabled={busy || !title.trim()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-            >
-              {isEdit ? "저장" : "추가"}
-            </button>
-          </div>
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md px-3 py-1.5 text-sm text-ink-soft hover:bg-raised"
+          >
+            취소
+          </button>
+          <button
+            type="submit"
+            disabled={busy || !title.trim()}
+            className="rounded-md bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent-hover disabled:opacity-50"
+          >
+            {isEdit ? "저장" : "추가"}
+          </button>
         </div>
       </form>
     </div>

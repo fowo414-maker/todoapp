@@ -112,7 +112,7 @@ export const api = {
       description?: string;
       status?: string;
       weeklyPlanId?: string | null;
-      date: string;
+      date?: string | null;
     }) =>
       request<TodoDTO>("/api/todos", {
         method: "POST",
@@ -125,7 +125,7 @@ export const api = {
         description: string;
         status: string;
         weeklyPlanId: string | null;
-        date: string;
+        date: string | null;
         order: number;
       }>,
     ) =>

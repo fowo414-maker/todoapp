@@ -35,7 +35,7 @@ export function WeekView() {
   const goalsQuery = useYearGoals();
 
   const weekTodos = useMemo(
-    () => (todosQuery.data ?? []).filter((t) => weekDates.has(t.date)),
+    () => (todosQuery.data ?? []).filter((t) => t.date && weekDates.has(t.date)),
     [todosQuery.data, weekDates],
   );
 
@@ -56,32 +56,35 @@ export function WeekView() {
     new Date(weekStartDate.getTime() + 6 * 86_400_000),
   )}`;
 
+  const navBtn =
+    "rounded-md border border-line-strong px-2 py-1 text-sm text-ink-soft hover:bg-raised hover:text-ink";
+
   return (
     <section className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-semibold">주간</h1>
-          <span className="text-sm text-neutral-500">{rangeLabel}</span>
+          <h1 className="text-2xl font-semibold text-ink">주간 계획</h1>
+          <span className="text-sm text-ink-soft">{rangeLabel}</span>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setWeekOffset((o) => o - 1)}
-            className="rounded-md border border-neutral-300 px-2 py-1 text-sm hover:bg-neutral-100"
+            className={navBtn}
           >
             이전 주
           </button>
           <button
             type="button"
             onClick={() => setWeekOffset(0)}
-            className="rounded-md border border-neutral-300 px-2 py-1 text-sm hover:bg-neutral-100"
+            className={navBtn}
           >
             이번 주
           </button>
           <button
             type="button"
             onClick={() => setWeekOffset((o) => o + 1)}
-            className="rounded-md border border-neutral-300 px-2 py-1 text-sm hover:bg-neutral-100"
+            className={navBtn}
           >
             다음 주
           </button>
@@ -91,7 +94,7 @@ export function WeekView() {
               setEditing(null);
               setDialogOpen(true);
             }}
-            className="rounded-md bg-neutral-900 px-3 py-1 text-sm text-white"
+            className="rounded-md bg-accent px-3 py-1 text-sm text-white hover:bg-accent-hover"
           >
             + 할 일
           </button>

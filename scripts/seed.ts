@@ -41,15 +41,16 @@ async function main() {
     title: string;
     status: "todo" | "doing" | "done";
     weeklyPlanId: mongoose.Types.ObjectId | null;
+    date?: string | null;
   }> = [
-    { title: "달리기 30분", status: "done", weeklyPlanId: w1._id },
+    { title: "달리기 30분", status: "done", weeklyPlanId: w1._id, date: today },
     { title: "스트레칭", status: "doing", weeklyPlanId: w1._id },
     { title: "단백질 식단 준비", status: "todo", weeklyPlanId: w1._id },
-    { title: "저장소 생성", status: "done", weeklyPlanId: w2._id },
+    { title: "저장소 생성", status: "done", weeklyPlanId: w2._id, date: today },
     { title: "CI 파이프라인", status: "doing", weeklyPlanId: w2._id },
     { title: "핵심 도메인 모델링", status: "todo", weeklyPlanId: w2._id },
     { title: "README 작성", status: "todo", weeklyPlanId: w3._id },
-    { title: "배포", status: "todo", weeklyPlanId: w3._id },
+    { title: "배포", status: "todo", weeklyPlanId: w3._id, date: today },
     { title: "물 2L 마시기", status: "todo", weeklyPlanId: null },
     { title: "회고 쓰기", status: "todo", weeklyPlanId: null },
   ];
@@ -60,7 +61,7 @@ async function main() {
       title: s.title,
       status: s.status,
       weeklyPlanId: s.weeklyPlanId,
-      date: today,
+      date: s.date ?? null,
       order: nextOrder[s.status]++,
       completedAt: s.status === "done" ? new Date() : null,
     })),
