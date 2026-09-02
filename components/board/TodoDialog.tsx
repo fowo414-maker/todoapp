@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useCreateTodo, useUpdateTodo } from "@/lib/queries";
-import type { TodoDTO, WeeklyPlanDTO } from "@/lib/types";
+import { TODO_COLORS, type TodoColor, type TodoDTO, type WeeklyPlanDTO } from "@/lib/types";
+import { TODO_COLOR_HEX, TODO_COLOR_LABELS } from "@/lib/todoColors";
 
 interface Props {
   onClose: () => void;
@@ -15,6 +16,12 @@ interface Props {
    * false(기본) 면 날짜 입력을 항상 노출하고 필수로 받는다.
    */
   deadlineOptional?: boolean;
+  /**
+   * 주간 보기에서 열렸을 때 그 주의 월요일('YYYY-MM-DD'). 주간 계획을
+   * 선택하지 않고 저장하면 이 값으로 할 일을 그 주에 묶어, 주간 보드/진행률에
+   * "미할당" 상태로도 나타나게 한다. 할 일 목록 등 다른 화면에서는 넘기지 않는다.
+   */
+  defaultWeekStart?: string | null;
 }
 
 /**
@@ -28,6 +35,7 @@ export function TodoDialog({
   defaultWeeklyPlanId = null,
   weeklyPlans,
   deadlineOptional = false,
+  defaultWeekStart = null,
 }: Props) {
   const isEdit = Boolean(todo);
   const create = useCreateTodo();
@@ -42,6 +50,7 @@ export function TodoDialog({
   const [weeklyPlanId, setWeeklyPlanId] = useState<string>(
     todo?.weeklyPlanId ?? defaultWeeklyPlanId ?? "",
   );
+  const [color, setColor] = useState<TodoColor>(todo?.color ?? "none");
 
   const busy = create.isPending || update.isPending;
   const useDate = deadlineOptional ? hasDeadline : true;
@@ -55,6 +64,13 @@ export function TodoDialog({
       description: description.trim(),
       date: useDate ? date : null,
       weeklyPlanId: weeklyPlanId || null,
+      // 주간 계획을 고르면 그걸로 주가 정해지니 weekStart 는 비운다. 계획 없이
+      // 주간 보기에서 저장하면 그 주에 묶고, 그 외 화면(할 일 목록 등)에서는
+      // 기존 값을 그대로 둔다(신규 생성 시엔 defaultWeekStart 가 없어 null).
+      weekStart: weeklyPlanId
+        ? null
+        : (defaultWeekStart ?? todo?.weekStart ?? null),
+      color,
     };
     try {
       if (isEdit && todo) {
@@ -161,6 +177,46 @@ export function TodoDialog({
             ))}
           </select>
         </label>
+
+        <div className="text-sm">
+          <span className="text-ink-soft">색상</span>
+          <div
+            role="radiogroup"
+            aria-label="색상 선택"
+            className="mt-1 flex flex-wrap gap-1.5"
+          >
+            {TODO_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                role="radio"
+                aria-checked={color === c}
+                aria-label={TODO_COLOR_LABELS[c]}
+                title={TODO_COLOR_LABELS[c]}
+                onClick={() => setColor(c)}
+                className={`flex h-6 w-6 items-center justify-center rounded-full border ${
+                  color === c
+                    ? "ring-2 ring-accent ring-offset-1"
+                    : "border-line-strong"
+                }`}
+                style={
+                  c === "none"
+                    ? undefined
+                    : { backgroundColor: TODO_COLOR_HEX[c] }
+                }
+              >
+                {c === "none" ? (
+                  <span
+                    aria-hidden
+                    className="text-[10px] leading-none text-ink-faint"
+                  >
+                    ✕
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="flex items-center justify-end gap-2 pt-2">
           <button

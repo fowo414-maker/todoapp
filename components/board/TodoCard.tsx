@@ -1,8 +1,10 @@
 "use client";
 
+import { useDndContext } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { STATUS_LABELS, type TodoDTO } from "@/lib/types";
+import { type TodoDTO, type WeeklyPlanDTO } from "@/lib/types";
+import { TODO_COLOR_HEX, TODO_COLOR_BG_HEX } from "@/lib/todoColors";
 import { useDeleteTodo } from "@/lib/queries";
 import {
   ContextMenu,
@@ -17,17 +19,33 @@ import {
 export function TodoCardContent({
   todo,
   dragging = false,
+  weeklyPlans = [],
 }: {
   todo: TodoDTO;
   dragging?: boolean;
+  weeklyPlans?: WeeklyPlanDTO[];
 }) {
   const done = todo.status === "done";
+  const hasColor = todo.color !== "none";
+  const weeklyPlanTitle = todo.weeklyPlanId
+    ? weeklyPlans.find((p) => p.id === todo.weeklyPlanId)?.title
+    : undefined;
 
   return (
     <div
-      className={`rounded-md border bg-surface px-3 py-2 text-sm ${
-        done ? "border-line" : "border-line-strong"
-      } ${dragging ? "shadow-lg" : "shadow-sm"}`}
+      className={`rounded-md border px-3 py-2 text-sm ${
+        hasColor ? "border-l-4" : "bg-surface"
+      } ${done ? "border-line" : "border-line-strong"} ${
+        dragging ? "shadow-lg" : "shadow-sm"
+      }`}
+      style={
+        hasColor
+          ? {
+              borderLeftColor: TODO_COLOR_HEX[todo.color],
+              backgroundColor: TODO_COLOR_BG_HEX[todo.color],
+            }
+          : undefined
+      }
     >
       <p
         className={`truncate font-medium ${
@@ -42,10 +60,14 @@ export function TodoCardContent({
           {todo.description}
         </p>
       ) : null}
-      <p className="mt-1 text-[11px] text-ink-faint">
-        {todo.date ? `📅 ${todo.date}` : "기한 없음"} ·{" "}
-        {STATUS_LABELS[todo.status]}
-      </p>
+      {todo.date ? (
+        <p className="mt-1 text-[11px] text-ink-faint">📅 {todo.date}</p>
+      ) : null}
+      {weeklyPlanTitle ? (
+        <p className="mt-1 truncate text-[11px] text-ink-faint">
+          {weeklyPlanTitle}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -53,13 +75,24 @@ export function TodoCardContent({
 export function TodoCard({
   todo,
   onEdit,
+  weeklyPlans = [],
 }: {
   todo: TodoDTO;
   onEdit?: (todo: TodoDTO) => void;
+  weeklyPlans?: WeeklyPlanDTO[];
 }) {
-  // transition: null → 재정렬 시 슬라이드 모션 없이 즉시 위치가 바뀐다.
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useSortable({ id: todo.id, transition: null });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: todo.id });
+  // 다른 카드가 밀려나는 드래그 중 모션만 남기고, 드롭 순간 새 순서로
+  // 자리 잡을 때 재생되는 스냅 애니메이션은 끈다.
+  const { active } = useDndContext();
+  const isAnyDragActive = active != null;
 
   const remove = useDeleteTodo();
   const menu = useContextMenu();
@@ -77,7 +110,10 @@ export function TodoCard({
   return (
     <li
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform) }}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition: isAnyDragActive ? transition : undefined,
+      }}
       data-testid="todo-card"
       data-todo-id={todo.id}
       data-status={todo.status}
@@ -89,7 +125,7 @@ export function TodoCard({
       {...attributes}
       {...listeners}
     >
-      <TodoCardContent todo={todo} />
+      <TodoCardContent todo={todo} weeklyPlans={weeklyPlans} />
       <ContextMenu
         position={menu.state}
         onClose={menu.close}

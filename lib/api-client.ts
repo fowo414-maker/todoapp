@@ -1,4 +1,5 @@
 import type {
+  TodoColor,
   TodoDTO,
   WeeklyPlanDTO,
   YearGoalDTO,
@@ -113,6 +114,8 @@ export const api = {
       status?: string;
       weeklyPlanId?: string | null;
       date?: string | null;
+      weekStart?: string | null;
+      color?: TodoColor;
     }) =>
       request<TodoDTO>("/api/todos", {
         method: "POST",
@@ -126,7 +129,9 @@ export const api = {
         status: string;
         weeklyPlanId: string | null;
         date: string | null;
+        weekStart: string | null;
         order: number;
+        color: TodoColor;
       }>,
     ) =>
       request<TodoDTO>(`/api/todos/${id}`, {

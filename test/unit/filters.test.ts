@@ -13,6 +13,7 @@ function todo(
     weeklyPlanId: partial.weeklyPlanId ?? null,
     date: partial.date ?? "2026-08-31",
     order: partial.order ?? 0,
+    color: partial.color ?? "none",
     completedAt: partial.completedAt ?? null,
     createdAt: "2026-08-31T00:00:00.000Z",
     updatedAt: "2026-08-31T00:00:00.000Z",

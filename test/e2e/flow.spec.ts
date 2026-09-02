@@ -30,7 +30,12 @@ async function dragCardToColumn(
   await page.mouse.up();
 }
 
-async function addTodo(page: Page, title: string, planLabel?: string) {
+async function addTodo(
+  page: Page,
+  title: string,
+  planLabel?: string,
+  { expectVisible = true }: { expectVisible?: boolean } = {},
+) {
   await page.getByRole("button", { name: "+ 할 일" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("제목").fill(title);
@@ -39,8 +44,21 @@ async function addTodo(page: Page, title: string, planLabel?: string) {
   }
   await dialog.getByRole("button", { name: "추가" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  if (expectVisible) {
+    await expect(
+      page.locator('[data-testid="todo-card"]', { hasText: title }),
+    ).toBeVisible();
+  }
+}
+
+async function addPlan(page: Page, title: string) {
+  await page.getByPlaceholder("새 주간 계획 제목").fill(title);
+  await page
+    .locator("form", { has: page.getByPlaceholder("새 주간 계획 제목") })
+    .getByRole("button", { name: "추가" })
+    .click();
   await expect(
-    page.locator('[data-testid="todo-card"]', { hasText: title }),
+    page.locator('[data-testid="weekly-plan"]', { hasText: title }),
   ).toBeVisible();
 }
 
@@ -68,15 +86,10 @@ test.describe("목표 연동 To-Do 전체 흐름", () => {
 
     // 2) 주간 계획 생성 + 목표 연결
     await page.goto("/week");
-    await page.getByPlaceholder("새 주간 계획 제목").fill("E2E 1주차");
-    await page
-      .locator("form", { has: page.getByPlaceholder("새 주간 계획 제목") })
-      .getByRole("button", { name: "추가" })
-      .click();
+    await addPlan(page, "E2E 1주차");
     const plan = page.locator('[data-testid="weekly-plan"]', {
       hasText: "E2E 1주차",
     });
-    await expect(plan).toBeVisible();
     await plan.getByRole("combobox").selectOption({ label: "E2E 목표" });
 
     // 3) 할 일 생성 + 계획 연결
@@ -121,8 +134,9 @@ test.describe("목표 연동 To-Do 전체 흐름", () => {
 
   test("같은 컬럼 내 재정렬은 새로고침 후에도 유지된다", async ({ page }) => {
     await page.goto("/week");
-    await addTodo(page, "R-A");
-    await addTodo(page, "R-B");
+    await addPlan(page, "R-플랜");
+    await addTodo(page, "R-A", "R-플랜");
+    await addTodo(page, "R-B", "R-플랜");
 
     const column = page.locator('[data-testid="column-todo"]');
     await expect(column.locator('[data-testid="todo-card"]')).toHaveText([
@@ -158,74 +172,48 @@ test.describe("목표 연동 To-Do 전체 흐름", () => {
     ]);
   });
 
-  test("상태 필터를 적용하면 조건에 맞는 할 일만 보인다", async ({ page }) => {
-    await page.goto("/week");
-    await addTodo(page, "F-DONE");
-    await addTodo(page, "F-TODO");
-
-    const doneCard = page.locator('[data-testid="todo-card"]', {
-      hasText: "F-DONE",
-    });
-    const doneId = await doneCard.getAttribute("data-todo-id");
-    await dragCardToColumn(page, doneId!, "done");
-    await expect(doneCard).toHaveAttribute("data-completed", "true");
-
-    await page.getByLabel("상태 필터").selectOption("done");
-    await expect(
-      page.locator('[data-testid="todo-card"]', { hasText: "F-TODO" }),
-    ).toHaveCount(0);
-    await expect(
-      page.locator('[data-testid="todo-card"]', { hasText: "F-DONE" }),
-    ).toBeVisible();
-
-    await page.getByLabel("상태 필터").selectOption("all");
-    await expect(
-      page.locator('[data-testid="todo-card"]', { hasText: "F-TODO" }),
-    ).toBeVisible();
-  });
-
-  test("기간 필터(미할당 / 이번 주 계획)를 적용하면 해당 할 일만 보인다", async ({
+  test("주간 보기 컬럼에는 이번 주 계획에 할당된 할 일 + 이 주간 보기에서 만든 미할당 할 일이 보인다", async ({
     page,
+    request,
   }) => {
     await page.goto("/week");
 
     // 주간 계획 하나 생성
-    await page.getByPlaceholder("새 주간 계획 제목").fill("P-1주차");
-    await page
-      .locator("form", { has: page.getByPlaceholder("새 주간 계획 제목") })
-      .getByRole("button", { name: "추가" })
-      .click();
-    await expect(
-      page.locator('[data-testid="weekly-plan"]', { hasText: "P-1주차" }),
-    ).toBeVisible();
+    await addPlan(page, "P-1주차");
 
     await addTodo(page, "SCOPE-ASSIGNED", "P-1주차");
-    await addTodo(page, "SCOPE-UNASSIGNED");
 
-    // 미할당만
-    await page.getByLabel("기간 필터").selectOption("unassigned");
-    await expect(
-      page.locator('[data-testid="todo-card"]', { hasText: "SCOPE-ASSIGNED" }),
-    ).toHaveCount(0);
-    await expect(
-      page.locator('[data-testid="todo-card"]', {
-        hasText: "SCOPE-UNASSIGNED",
-      }),
-    ).toBeVisible();
+    // 주간 계획을 고르지 않고("미할당") 이 주간 보기에서 만든 할 일은
+    // 이 주 컬럼/진행률에 그대로 포함된다.
+    await addTodo(page, "SCOPE-WEEK-UNASSIGNED");
 
-    // 이번 주 계획에 속한 것만
-    await page.getByLabel("기간 필터").selectOption("week");
-    await expect(
-      page.locator('[data-testid="todo-card"]', {
-        hasText: "SCOPE-UNASSIGNED",
-      }),
-    ).toHaveCount(0);
+    // 반면 다른 화면(예: 할 일 목록)에서, 이 주와 무관하게 만들어진 할 일은
+    // 계획에 할당되지 않았다면 컬럼에 나타나지 않는다.
+    const created = await request.post("/api/todos", {
+      data: { title: "SCOPE-OTHER-UNASSIGNED", date: "2026-08-31" },
+    });
+    expect(created.ok()).toBe(true);
+
+    await page.reload();
     await expect(
       page.locator('[data-testid="todo-card"]', { hasText: "SCOPE-ASSIGNED" }),
     ).toBeVisible();
-
-    await page.getByLabel("기간 필터").selectOption("all");
+    await expect(
+      page.locator('[data-testid="todo-card"]', {
+        hasText: "SCOPE-WEEK-UNASSIGNED",
+      }),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="todo-card"]', {
+        hasText: "SCOPE-OTHER-UNASSIGNED",
+      }),
+    ).toHaveCount(0);
     await expect(page.locator('[data-testid="todo-card"]')).toHaveCount(2);
+
+    // 이 주간 보기에서 만든 미할당 할 일도 이번 주 진행률에 포함된다.
+    await expect(page.locator('[data-testid="week-progress"]')).toContainText(
+      "(0/2)",
+    );
   });
 
   test("할 일 / 주간 계획 / 1년 목표 화면 네비게이션", async ({ page }) => {

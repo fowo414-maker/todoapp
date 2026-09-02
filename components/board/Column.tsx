@@ -5,7 +5,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { type TodoDTO, type TodoStatus } from "@/lib/types";
+import { type TodoDTO, type TodoStatus, type WeeklyPlanDTO } from "@/lib/types";
 import { TodoCard } from "./TodoCard";
 
 // 세 파트를 회색 진함 차이로 구분한다 (todo → done 로 갈수록 진해짐).
@@ -20,11 +20,13 @@ export function Column({
   todos,
   onEdit,
   fill = false,
+  weeklyPlans = [],
 }: {
   status: TodoStatus;
   todos: TodoDTO[];
   onEdit?: (todo: TodoDTO) => void;
   fill?: boolean;
+  weeklyPlans?: WeeklyPlanDTO[];
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
@@ -38,7 +40,7 @@ export function Column({
       } ${isOver ? "border-line-strong" : "border-line"}`}
     >
       <div
-        className={`flex items-center gap-2 px-3 py-2 ${HEADER_SHADE[status]}`}
+        className={`flex items-center justify-between gap-2 px-3 py-2 ${HEADER_SHADE[status]}`}
       >
         <h3 className="font-mono text-sm font-semibold lowercase text-ink">
           {status}
@@ -63,7 +65,12 @@ export function Column({
               </li>
             ) : (
               todos.map((todo) => (
-                <TodoCard key={todo.id} todo={todo} onEdit={onEdit} />
+                <TodoCard
+                  key={todo.id}
+                  todo={todo}
+                  onEdit={onEdit}
+                  weeklyPlans={weeklyPlans}
+                />
               ))
             )}
           </ul>

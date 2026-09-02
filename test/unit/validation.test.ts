@@ -10,9 +10,9 @@ import { createWeeklyPlanSchema } from "@/lib/validation/weeklyPlan";
 const OID = "0123456789abcdef01234567";
 
 describe("createTodoSchema", () => {
-  it("유효한 입력을 통과시키고 status 기본값 'todo'", () => {
+  it("유효한 입력을 통과시키고 status 는 라우트에서 기본값 처리하도록 undefined 로 남긴다", () => {
     const parsed = createTodoSchema.parse({ title: "책 읽기", date: "2026-08-31" });
-    expect(parsed.status).toBe("todo");
+    expect(parsed.status).toBeUndefined();
     expect(parsed.title).toBe("책 읽기");
   });
 
@@ -68,6 +68,12 @@ describe("updateTodoSchema", () => {
   it("부분 업데이트 허용 (status 만)", () => {
     const parsed = updateTodoSchema.parse({ status: "done" });
     expect(parsed).toEqual({ status: "done" });
+  });
+
+  it("status 를 건드리지 않는 부분 업데이트는 status 를 'todo' 로 되돌리지 않는다", () => {
+    const parsed = updateTodoSchema.parse({ title: "제목 수정" });
+    expect(parsed.status).toBeUndefined();
+    expect(parsed).toEqual({ title: "제목 수정" });
   });
 });
 

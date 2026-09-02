@@ -74,7 +74,9 @@ export async function POST(req: Request): Promise<Response> {
       status,
       weeklyPlanId: input.weeklyPlanId ?? null,
       date: input.date ?? null,
+      weekStart: input.weekStart ?? null,
       order,
+      color: input.color ?? "none",
       completedAt: status === "done" ? new Date() : null,
     });
     return created(serializeTodo(doc));

@@ -46,6 +46,7 @@ export function TodoBoard() {
         <Board
           fill
           todos={todos}
+          weeklyPlans={plansQuery.data ?? []}
           onEdit={(t) => {
             setEditing(t);
             setDialogOpen(true);

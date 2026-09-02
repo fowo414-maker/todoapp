@@ -6,12 +6,30 @@ import { WeekProgressBar } from "@/components/week/WeekProgressBar";
 import { Skeleton } from "@/components/common/Skeleton";
 import { rollupProgress } from "@/components/year/YearView";
 import { useTodos, useWeeklyPlans, useYearGoals } from "@/lib/queries";
-import { currentWeekStart, toDateString } from "@/lib/dates";
+import { currentWeekStart, parseDateString, toDateString } from "@/lib/dates";
 import {
   STATUS_LABELS,
   TODO_STATUSES,
+  type TodoDTO,
   type WeeklyPlanDTO,
 } from "@/lib/types";
+
+/** 기한 임박 판정 기준: 오늘부터 이 일수 이내(지난 기한 포함)면 임박으로 본다. */
+const UPCOMING_DEADLINE_DAYS = 3;
+const MS_PER_DAY = 86_400_000;
+
+function daysUntil(dateStr: string, today: Date): number {
+  return Math.round(
+    (parseDateString(dateStr).getTime() - today.getTime()) / MS_PER_DAY,
+  );
+}
+
+function deadlineLabel(days: number): string {
+  if (days < 0) return `${-days}일 지남`;
+  if (days === 0) return "오늘 마감";
+  if (days === 1) return "내일 마감";
+  return `${days}일 남음`;
+}
 
 export function Dashboard() {
   const todosQuery = useTodos({});
@@ -37,6 +55,18 @@ export function Dashboard() {
     () => todos.filter((t) => t.date && weekDates.has(t.date)),
     [todos, weekDates],
   );
+
+  const upcomingDeadlineTodos = useMemo(() => {
+    const todayDate = parseDateString(toDateString(new Date()));
+    return todos
+      .filter(
+        (t): t is TodoDTO & { date: string } =>
+          t.date !== null && t.status !== "done",
+      )
+      .map((t) => ({ todo: t, days: daysUntil(t.date, todayDate) }))
+      .filter(({ days }) => days <= UPCOMING_DEADLINE_DAYS)
+      .sort((a, b) => a.days - b.days);
+  }, [todos]);
 
   const thisWeekPlans = useMemo(
     () =>
@@ -82,6 +112,53 @@ export function Dashboard() {
   return (
     <section className="space-y-6">
       <h1 className="text-2xl font-semibold text-ink">대시보드</h1>
+
+      <div
+        className={`rounded-lg border p-4 ${
+          upcomingDeadlineTodos.length > 0
+            ? "border-red-200 bg-red-50"
+            : "border-line bg-surface"
+        }`}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-ink">
+            기한 임박{" "}
+            <span className="text-xs font-normal text-ink-faint">
+              ({UPCOMING_DEADLINE_DAYS}일 이내)
+            </span>
+          </h2>
+          <Link
+            href="/todo"
+            className="text-xs text-ink-soft underline hover:text-ink"
+          >
+            할 일 보기
+          </Link>
+        </div>
+        {upcomingDeadlineTodos.length === 0 ? (
+          <p className="text-xs text-ink-faint">
+            기한이 임박한 할 일이 없습니다.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {upcomingDeadlineTodos.map(({ todo: t, days }) => (
+              <li
+                key={t.id}
+                data-testid="upcoming-deadline-todo"
+                className="flex items-center justify-between gap-2 rounded-md border border-line bg-surface px-3 py-2"
+              >
+                <span className="truncate text-sm text-ink">{t.title}</span>
+                <span
+                  className={`shrink-0 text-xs tabular-nums ${
+                    days <= 0 ? "font-medium text-red-600" : "text-ink-soft"
+                  }`}
+                >
+                  {t.date} · {deadlineLabel(days)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <div className="rounded-lg border border-line bg-surface p-4">
         <div className="mb-3 flex items-center justify-between">

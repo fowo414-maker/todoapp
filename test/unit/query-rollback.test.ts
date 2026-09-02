@@ -16,6 +16,7 @@ function todo(id: string, status: TodoDTO["status"] = "todo"): TodoDTO {
     weeklyPlanId: null,
     date: "2026-08-31",
     order: 0,
+    color: "none",
     completedAt: null,
     createdAt: "2026-08-31T00:00:00.000Z",
     updatedAt: "2026-08-31T00:00:00.000Z",

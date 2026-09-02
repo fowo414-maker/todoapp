@@ -5,7 +5,6 @@ import { Board } from "@/components/board/Board";
 import { TodoDialog } from "@/components/board/TodoDialog";
 import { WeekProgressBar } from "@/components/week/WeekProgressBar";
 import { WeeklyPlanList } from "@/components/week/WeeklyPlanList";
-import { Filters, useTodoFilter } from "@/components/common/Filters";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Skeleton } from "@/components/common/Skeleton";
 import { useTodos, useWeeklyPlans, useYearGoals } from "@/lib/queries";
@@ -19,34 +18,28 @@ export function WeekView() {
     [weekOffset],
   );
   const weekStart = weekStartDate.toISOString();
-
-  const weekDates = useMemo(() => {
-    const set = new Set<string>();
-    for (let i = 0; i < 7; i += 1) {
-      const d = new Date(weekStartDate);
-      d.setUTCDate(d.getUTCDate() + i);
-      set.add(toDateString(d));
-    }
-    return set;
-  }, [weekStartDate]);
+  // 할 일의 weekStart 필드와 비교할 'YYYY-MM-DD' 형식의 이 주 월요일.
+  const weekStartKey = toDateString(weekStartDate);
 
   const todosQuery = useTodos({});
   const plansQuery = useWeeklyPlans(weekStart);
   const goalsQuery = useYearGoals();
 
-  const weekTodos = useMemo(
-    () => (todosQuery.data ?? []).filter((t) => t.date && weekDates.has(t.date)),
-    [todosQuery.data, weekDates],
-  );
-
   const planIds = useMemo(
     () => new Set((plansQuery.data ?? []).map((p) => p.id)),
     [plansQuery.data],
   );
-  const { filter, setFilter, apply } = useTodoFilter();
-  const visibleTodos = useMemo(
-    () => apply(weekTodos, planIds),
-    [apply, weekTodos, planIds],
+
+  // 이번 주 계획들 중 하나에 할당된 할 일 + 계획 없이("미할당") 이 주간 보기에서
+  // 만들어 이 주에 묶인 할 일(weekStart 일치)만 보여준다.
+  const weekTodos = useMemo(
+    () =>
+      (todosQuery.data ?? []).filter((t) =>
+        t.weeklyPlanId !== null
+          ? planIds.has(t.weeklyPlanId)
+          : t.weekStart === weekStartKey,
+      ),
+    [todosQuery.data, planIds, weekStartKey],
   );
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -109,8 +102,6 @@ export function WeekView() {
         yearGoals={goalsQuery.data ?? []}
       />
 
-      <Filters value={filter} onChange={setFilter} />
-
       {todosQuery.isLoading ? (
         <Skeleton rows={4} />
       ) : todosQuery.isError ? (
@@ -121,7 +112,8 @@ export function WeekView() {
         <EmptyState message="이번 주 할 일이 없습니다. “+ 할 일”로 추가하세요." />
       ) : (
         <Board
-          todos={visibleTodos}
+          todos={weekTodos}
+          weeklyPlans={plansQuery.data ?? []}
           onEdit={(t) => {
             setEditing(t);
             setDialogOpen(true);
@@ -132,10 +124,12 @@ export function WeekView() {
       {dialogOpen ? (
         <TodoDialog
           key={editing?.id ?? "new"}
+          deadlineOptional
           onClose={() => setDialogOpen(false)}
           todo={editing}
           defaultDate={toDateString(weekStartDate)}
           weeklyPlans={plansQuery.data ?? []}
+          defaultWeekStart={weekStartKey}
         />
       ) : null}
     </section>
