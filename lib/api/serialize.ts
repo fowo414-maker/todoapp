@@ -51,7 +51,6 @@ export function serializeTodo(
     status: doc.status,
     weeklyPlanId: doc.weeklyPlanId ? doc.weeklyPlanId.toString() : null,
     date: doc.date ?? null,
-    weekStart: doc.weekStart ?? null,
     order: doc.order,
     color: (doc.color as TodoDTO["color"] | undefined) ?? "none",
     completedAt: doc.completedAt ? doc.completedAt.toISOString() : null,

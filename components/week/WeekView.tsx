@@ -18,8 +18,6 @@ export function WeekView() {
     [weekOffset],
   );
   const weekStart = weekStartDate.toISOString();
-  // 할 일의 weekStart 필드와 비교할 'YYYY-MM-DD' 형식의 이 주 월요일.
-  const weekStartKey = toDateString(weekStartDate);
 
   const todosQuery = useTodos({});
   const plansQuery = useWeeklyPlans(weekStart);
@@ -30,18 +28,14 @@ export function WeekView() {
     [plansQuery.data],
   );
 
-  // 이번 주 계획들 중 하나에 할당된 할 일 + 계획 없이("미할당") 이 주간 보기에서
-  // 만들어 이 주에 묶인 할 일(weekStart 일치)만 보여준다.
+  // 기한(date)이 아니라, 이번 주 계획들 중 하나에 할당된 할 일만 보여준다.
   const weekTodos = useMemo(
     () =>
-      (todosQuery.data ?? []).filter((t) =>
-        t.weeklyPlanId !== null
-          ? planIds.has(t.weeklyPlanId)
-          : t.weekStart === weekStartKey,
+      (todosQuery.data ?? []).filter(
+        (t) => t.weeklyPlanId !== null && planIds.has(t.weeklyPlanId),
       ),
-    [todosQuery.data, planIds, weekStartKey],
+    [todosQuery.data, planIds],
   );
-
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TodoDTO | null>(null);
 
@@ -83,11 +77,17 @@ export function WeekView() {
           </button>
           <button
             type="button"
+            disabled={(plansQuery.data ?? []).length === 0}
+            title={
+              (plansQuery.data ?? []).length === 0
+                ? "먼저 주간 계획을 추가하세요"
+                : undefined
+            }
             onClick={() => {
               setEditing(null);
               setDialogOpen(true);
             }}
-            className="rounded-md bg-accent px-3 py-1 text-sm text-white hover:bg-accent-hover"
+            className="rounded-md bg-accent px-3 py-1 text-sm text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             + 할 일
           </button>
@@ -125,11 +125,11 @@ export function WeekView() {
         <TodoDialog
           key={editing?.id ?? "new"}
           deadlineOptional
+          requireWeeklyPlan
           onClose={() => setDialogOpen(false)}
           todo={editing}
           defaultDate={toDateString(weekStartDate)}
           weeklyPlans={plansQuery.data ?? []}
-          defaultWeekStart={weekStartKey}
         />
       ) : null}
     </section>

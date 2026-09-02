@@ -114,7 +114,6 @@ export const api = {
       status?: string;
       weeklyPlanId?: string | null;
       date?: string | null;
-      weekStart?: string | null;
       color?: TodoColor;
     }) =>
       request<TodoDTO>("/api/todos", {
@@ -129,7 +128,6 @@ export const api = {
         status: string;
         weeklyPlanId: string | null;
         date: string | null;
-        weekStart: string | null;
         order: number;
         color: TodoColor;
       }>,

@@ -22,12 +22,6 @@ export const createTodoSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "'YYYY-MM-DD' 형식이어야 합니다")
     .nullish(),
-  // 주간 보기에서 미할당으로 만든 할 일이 속한 주의 월요일. date 와 형식은 같지만
-  // 의미(기한 vs 소속 주)가 다르다.
-  weekStart: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "'YYYY-MM-DD' 형식이어야 합니다")
-    .nullish(),
   order: z.number().int().min(0).optional(),
   // status 와 마찬가지로 `.default()` 를 쓰지 않는다 (위 주석 참고): 부분 업데이트 시
   // 색상을 건드리지 않아도 "none"으로 되돌아가 버리는 것을 막기 위함.

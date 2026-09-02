@@ -172,7 +172,7 @@ test.describe("목표 연동 To-Do 전체 흐름", () => {
     ]);
   });
 
-  test("주간 보기 컬럼에는 이번 주 계획에 할당된 할 일 + 이 주간 보기에서 만든 미할당 할 일이 보인다", async ({
+  test("주간 보기 컬럼에는 이번 주 계획에 할당된 할 일만 보인다", async ({
     page,
     request,
   }) => {
@@ -183,14 +183,11 @@ test.describe("목표 연동 To-Do 전체 흐름", () => {
 
     await addTodo(page, "SCOPE-ASSIGNED", "P-1주차");
 
-    // 주간 계획을 고르지 않고("미할당") 이 주간 보기에서 만든 할 일은
-    // 이 주 컬럼/진행률에 그대로 포함된다.
-    await addTodo(page, "SCOPE-WEEK-UNASSIGNED");
-
-    // 반면 다른 화면(예: 할 일 목록)에서, 이 주와 무관하게 만들어진 할 일은
-    // 계획에 할당되지 않았다면 컬럼에 나타나지 않는다.
+    // 어떤 주간 계획에도 할당하지 않은 할 일은 컬럼에 아예 나타나지 않는다
+    // (UI 로는 만들 수 없다 — 주간 보기의 할 일 추가는 항상 계획 하나를 요구한다 —
+    // 이므로 API 로 직접 생성한다).
     const created = await request.post("/api/todos", {
-      data: { title: "SCOPE-OTHER-UNASSIGNED", date: "2026-08-31" },
+      data: { title: "SCOPE-UNASSIGNED", date: "2026-08-31" },
     });
     expect(created.ok()).toBe(true);
 
@@ -200,20 +197,36 @@ test.describe("목표 연동 To-Do 전체 흐름", () => {
     ).toBeVisible();
     await expect(
       page.locator('[data-testid="todo-card"]', {
-        hasText: "SCOPE-WEEK-UNASSIGNED",
-      }),
-    ).toBeVisible();
-    await expect(
-      page.locator('[data-testid="todo-card"]', {
-        hasText: "SCOPE-OTHER-UNASSIGNED",
+        hasText: "SCOPE-UNASSIGNED",
       }),
     ).toHaveCount(0);
-    await expect(page.locator('[data-testid="todo-card"]')).toHaveCount(2);
+    await expect(page.locator('[data-testid="todo-card"]')).toHaveCount(1);
+  });
 
-    // 이 주간 보기에서 만든 미할당 할 일도 이번 주 진행률에 포함된다.
-    await expect(page.locator('[data-testid="week-progress"]')).toContainText(
-      "(0/2)",
-    );
+  test("주간 보기에서 추가하는 할 일은 기한 없음이 기본이고 주간 계획이 항상 지정된다", async ({
+    page,
+  }) => {
+    await page.goto("/week");
+    await addPlan(page, "D-플랜");
+
+    await page.getByRole("button", { name: "+ 할 일" }).click();
+    const dialog = page.getByRole("dialog");
+    // "기한 설정" 체크박스는 기본 해제 상태다 (할 일 화면과 동일한 기본값).
+    await expect(dialog.getByLabel("기한 설정")).not.toBeChecked();
+    // "(미할당)" 옵션 없이 방금 만든 계획이 곧바로 선택돼 있다.
+    await expect(
+      dialog.getByLabel("주간 계획").locator("option:checked"),
+    ).toHaveText("D-플랜");
+    await expect(
+      dialog.getByLabel("주간 계획").locator("option", { hasText: "(미할당)" }),
+    ).toHaveCount(0);
+
+    await dialog.getByLabel("제목").fill("D-할 일");
+    await dialog.getByRole("button", { name: "추가" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(
+      page.locator('[data-testid="todo-card"]', { hasText: "D-할 일" }),
+    ).toBeVisible();
   });
 
   test("할 일 / 주간 계획 / 1년 목표 화면 네비게이션", async ({ page }) => {

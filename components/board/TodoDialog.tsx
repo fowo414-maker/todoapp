@@ -17,11 +17,11 @@ interface Props {
    */
   deadlineOptional?: boolean;
   /**
-   * 주간 보기에서 열렸을 때 그 주의 월요일('YYYY-MM-DD'). 주간 계획을
-   * 선택하지 않고 저장하면 이 값으로 할 일을 그 주에 묶어, 주간 보드/진행률에
-   * "미할당" 상태로도 나타나게 한다. 할 일 목록 등 다른 화면에서는 넘기지 않는다.
+   * true 면 주간 계획 선택이 필수다 ("(미할당)" 옵션을 없애고, 계획 하나를
+   * 기본 선택해 둔다). 주간 계획 화면에서 만드는 할 일은 항상 계획에
+   * 속해야 하므로 사용한다. false(기본)면 "(미할당)" 옵션을 남겨 둔다.
    */
-  defaultWeekStart?: string | null;
+  requireWeeklyPlan?: boolean;
 }
 
 /**
@@ -35,7 +35,7 @@ export function TodoDialog({
   defaultWeeklyPlanId = null,
   weeklyPlans,
   deadlineOptional = false,
-  defaultWeekStart = null,
+  requireWeeklyPlan = false,
 }: Props) {
   const isEdit = Boolean(todo);
   const create = useCreateTodo();
@@ -48,7 +48,9 @@ export function TodoDialog({
   );
   const [date, setDate] = useState(todo?.date ?? defaultDate);
   const [weeklyPlanId, setWeeklyPlanId] = useState<string>(
-    todo?.weeklyPlanId ?? defaultWeeklyPlanId ?? "",
+    todo?.weeklyPlanId ??
+      defaultWeeklyPlanId ??
+      (requireWeeklyPlan ? (weeklyPlans[0]?.id ?? "") : ""),
   );
   const [color, setColor] = useState<TodoColor>(todo?.color ?? "none");
 
@@ -59,17 +61,12 @@ export function TodoDialog({
     e.preventDefault();
     if (!title.trim()) return;
     if (useDate && !date) return;
+    if (requireWeeklyPlan && !weeklyPlanId) return;
     const payload = {
       title: title.trim(),
       description: description.trim(),
       date: useDate ? date : null,
       weeklyPlanId: weeklyPlanId || null,
-      // 주간 계획을 고르면 그걸로 주가 정해지니 weekStart 는 비운다. 계획 없이
-      // 주간 보기에서 저장하면 그 주에 묶고, 그 외 화면(할 일 목록 등)에서는
-      // 기존 값을 그대로 둔다(신규 생성 시엔 defaultWeekStart 가 없어 null).
-      weekStart: weeklyPlanId
-        ? null
-        : (defaultWeekStart ?? todo?.weekStart ?? null),
       color,
     };
     try {
@@ -168,8 +165,9 @@ export function TodoDialog({
             value={weeklyPlanId}
             onChange={(e) => setWeeklyPlanId(e.target.value)}
             className={fieldClass}
+            required={requireWeeklyPlan}
           >
-            <option value="">(미할당)</option>
+            {requireWeeklyPlan ? null : <option value="">(미할당)</option>}
             {weeklyPlans.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.title}
@@ -228,7 +226,9 @@ export function TodoDialog({
           </button>
           <button
             type="submit"
-            disabled={busy || !title.trim()}
+            disabled={
+              busy || !title.trim() || (requireWeeklyPlan && !weeklyPlanId)
+            }
             className="rounded-md bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent-hover disabled:opacity-50"
           >
             {isEdit ? "저장" : "추가"}
