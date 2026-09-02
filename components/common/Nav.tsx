@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/todo", label: "할 일", icon: "☑" },
   { href: "/week", label: "주간 계획", icon: "▤" },
   { href: "/year", label: "1년 목표", icon: "◎" },
+  { href: "/calendar", label: "캘린더", icon: "▥" },
 ] as const;
 
 export function Nav() {

@@ -28,7 +28,7 @@ export function TodoBoard() {
             setEditing(null);
             setDialogOpen(true);
           }}
-          className="rounded-md bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent-hover"
+          className="rounded-md border border-transparent bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent-hover"
         >
           + 할 일
         </button>

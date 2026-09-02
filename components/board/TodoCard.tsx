@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useDndContext } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -11,6 +12,7 @@ import {
   useContextMenu,
   type MenuAction,
 } from "@/components/common/ContextMenu";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 /**
  * 카드의 시각적 본문. 정렬용 `<li>` 안에서도, 드래그 중 `DragOverlay` 안에서도
@@ -96,15 +98,14 @@ export function TodoCard({
 
   const remove = useDeleteTodo();
   const menu = useContextMenu();
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const actions: MenuAction[] = [];
   if (onEdit) actions.push({ label: "편집", onSelect: () => onEdit(todo) });
   actions.push({
     label: "삭제",
     danger: true,
-    onSelect: () => {
-      if (window.confirm("이 할 일을 삭제할까요?")) remove.mutate(todo.id);
-    },
+    onSelect: () => setConfirmDelete(true),
   });
 
   return (
@@ -131,6 +132,15 @@ export function TodoCard({
         onClose={menu.close}
         actions={actions}
       />
+      {confirmDelete ? (
+        <ConfirmDialog
+          title="할 일 삭제"
+          message={`"${todo.title}" 할 일을 삭제할까요?`}
+          confirmLabel="삭제"
+          onConfirm={() => remove.mutate(todo.id)}
+          onClose={() => setConfirmDelete(false)}
+        />
+      ) : null}
     </li>
   );
 }

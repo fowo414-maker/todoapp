@@ -44,7 +44,7 @@ export function WeekView() {
   )}`;
 
   const navBtn =
-    "rounded-md border border-line-strong px-2 py-1 text-sm text-ink-soft hover:bg-raised hover:text-ink";
+    "rounded-md border border-line-strong px-3 py-1.5 text-sm text-ink-soft hover:bg-raised hover:text-ink";
 
   return (
     <section className="space-y-4">
@@ -59,6 +59,9 @@ export function WeekView() {
             onClick={() => setWeekOffset((o) => o - 1)}
             className={navBtn}
           >
+            <span aria-hidden className="mr-1.5 text-[0.7em]">
+              ◀
+            </span>
             이전 주
           </button>
           <button
@@ -74,6 +77,9 @@ export function WeekView() {
             className={navBtn}
           >
             다음 주
+            <span aria-hidden className="ml-1.5 text-[0.7em]">
+              ▶
+            </span>
           </button>
           <button
             type="button"
@@ -87,7 +93,7 @@ export function WeekView() {
               setEditing(null);
               setDialogOpen(true);
             }}
-            className="rounded-md bg-accent px-3 py-1 text-sm text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md border border-transparent bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             + 할 일
           </button>

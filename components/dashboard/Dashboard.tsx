@@ -14,7 +14,7 @@ import {
   type WeeklyPlanDTO,
 } from "@/lib/types";
 
-/** 기한 임박 판정 기준: 오늘부터 이 일수 이내(지난 기한 포함)면 임박으로 본다. */
+/** 기한 임박 판정 기준: 오늘부터 이 일수 이내면 임박으로 본다. 지난 기한은 제외. */
 const UPCOMING_DEADLINE_DAYS = 3;
 const MS_PER_DAY = 86_400_000;
 
@@ -29,6 +29,14 @@ function deadlineLabel(days: number): string {
   if (days === 0) return "오늘 마감";
   if (days === 1) return "내일 마감";
   return `${days}일 남음`;
+}
+
+/** 기한이 가까울수록 진한 빨강. days 는 0~UPCOMING_DEADLINE_DAYS 범위. */
+function deadlineTone(days: number): string {
+  if (days <= 0) return "font-semibold text-red-700";
+  if (days === 1) return "font-medium text-red-600";
+  if (days === 2) return "text-red-500";
+  return "text-red-400";
 }
 
 export function Dashboard() {
@@ -64,7 +72,7 @@ export function Dashboard() {
           t.date !== null && t.status !== "done",
       )
       .map((t) => ({ todo: t, days: daysUntil(t.date, todayDate) }))
-      .filter(({ days }) => days <= UPCOMING_DEADLINE_DAYS)
+      .filter(({ days }) => days >= 0 && days <= UPCOMING_DEADLINE_DAYS)
       .sort((a, b) => a.days - b.days);
   }, [todos]);
 
@@ -120,20 +128,12 @@ export function Dashboard() {
             : "border-line bg-surface"
         }`}
       >
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-ink">
-            기한 임박{" "}
-            <span className="text-xs font-normal text-ink-faint">
-              ({UPCOMING_DEADLINE_DAYS}일 이내)
-            </span>
-          </h2>
-          <Link
-            href="/todo"
-            className="text-xs text-ink-soft underline hover:text-ink"
-          >
-            할 일 보기
-          </Link>
-        </div>
+        <h2 className="mb-3 text-sm font-semibold text-ink">
+          기한 임박{" "}
+          <span className="text-xs font-normal text-ink-faint">
+            ({UPCOMING_DEADLINE_DAYS}일 이내)
+          </span>
+        </h2>
         {upcomingDeadlineTodos.length === 0 ? (
           <p className="text-xs text-ink-faint">
             기한이 임박한 할 일이 없습니다.
@@ -148,9 +148,7 @@ export function Dashboard() {
               >
                 <span className="truncate text-sm text-ink">{t.title}</span>
                 <span
-                  className={`shrink-0 text-xs tabular-nums ${
-                    days <= 0 ? "font-medium text-red-600" : "text-ink-soft"
-                  }`}
+                  className={`shrink-0 text-xs tabular-nums ${deadlineTone(days)}`}
                 >
                   {t.date} · {deadlineLabel(days)}
                 </span>
